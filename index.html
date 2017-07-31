@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+  <button onclick='random_orgs()'>
+    <span>Generate random set of connected organizations</span>
+  </button>
+  <span>
+    <input id="n_orgs" type="" name="" placeholder="10">
+    Number of organizations
+  </span>
+  <p id="orgs"></p>
+
+  <canvas id="map-canvas" width="800" height="800" style="border:1px solid #000000;"></canvas>
+
+  <script type="text/javascript">
+
+    window.onload = random_orgs;
+    window.OrgNet = {
+      mapSize: document.getElementById('map-canvas').width,
+      pt_size: 10
+    };
+
+    function random_orgs() {
+      const n_orgs = document.getElementById("n_orgs").value || 10;
+      OrgNet.orgs = get_network(n_orgs);
+      // console.log(OrgNet.orgs);
+      draw_network(OrgNet.orgs);
+    }
+
+    // generate n names
+    function list_of_orgs (n) {
+      let orgs = [];
+      for (var i = n - 1; i >= 0; i--) {
+        let char = `org-${i}`;
+        orgs[i] = char;
+      }
+      return orgs;
+    }
+
+    // generate random network
+    function get_network (n) {
+      let orgs = list_of_orgs(n);
+      let orgs_net = {}
+      for (let k = orgs.length - 1; k >= 0; k--) {
+        let random_size = get_random_int(0, orgs.length);
+        orgs_net[orgs[k]] = {}
+        orgs_net[orgs[k]]['network'] = get_random_sample(orgs, random_size, orgs[k]);
+        orgs_net[orgs[k]]['location'] = get_random_location();
+        orgs_net[orgs[k]]['color'] = random_rgb();
+      }
+      return orgs_net;
+    }
+
+    // get a random value
+    function get_random(length) { return Math.floor(Math.random()*(length)); }
+
+    // get a random sample
+    function get_random_sample(array, size, exclude) {
+        let length = array.length;
+        let arr_copy = JSON.parse(JSON.stringify(array));
+        for(let i = size; i--;) {
+            let index = get_random(length);
+            let temp = arr_copy[index];
+            arr_copy[index] = arr_copy[i];
+            arr_copy[i] = temp;
+        }
+        let sample = arr_copy.slice(0, size);
+        sample.splice(sample.indexOf(exclude), 1);
+        return sample;
+    }
+
+    // get a randome XY location for each
+    function get_random_location() {
+      return {x: parseInt(Math.random() * OrgNet.mapSize), y: parseInt(Math.random() * OrgNet.mapSize)};
+    }
+
+    // get a random int between
+    function get_random_int(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    }
+
+    // return a random rgba() string
+    function random_rgb() {
+      let r,g,b;
+      let a = 1
+      r = Math.floor(Math.random()*255);
+      g = Math.floor(Math.random()*255);
+      b = Math.floor(Math.random()*255);
+      return `rgba(${r},${g},${b},${a})`;
+    }
+    function draw_network(orgs) {
+      let canvas = document.getElementById('map-canvas');
+      let ctx = canvas.getContext("2d");
+      let canvasWidth = canvas.width;
+      let canvasHeight = canvas.height;
+      let canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      ctx.clearRect(0,0, canvasWidth, canvasHeight);
+
+      Object.keys(orgs).map( org_id => {
+        let org = orgs[org_id];
+        ctx.fillStyle = org.color;
+        ctx.fillRect(org.location.x, org.location.y, OrgNet.pt_size, OrgNet.pt_size);
+        org.network.map( network_org => {
+          draw_line_between(org.location, orgs[network_org].location, org.color, ctx);
+        })
+      });
+    }
+
+    // draw a line between two points
+    function draw_line_between(begin, end, color, ctx) {
+      ctx.beginPath();
+      ctx.lineWidth = "2";
+      ctx.strokeStyle = color;
+      ctx.moveTo(begin.x + OrgNet.pt_size/2,begin.y + OrgNet.pt_size/2);
+      ctx.lineTo(end.x  + OrgNet.pt_size/2, end.y  + OrgNet.pt_size/2);
+      ctx.stroke();
+    }
+
+  </script>
+
+</body>
+</html>
