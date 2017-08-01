@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Network Graph Sandbox</title>
   <script type="text/javascript" src="network_connections.js"></script>
   <style type="text/css">
     .values{
@@ -35,11 +36,15 @@
     <canvas id="map-canvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
     <div class="right">
       <div>
-        <p id="org-locations"  class="values-header">Locations</p>
+        <p id="org-locations"  class="values-header">
+          Locations (name: x, y) Keep x,y values between 0-500
+        </p>
         <textarea id="locations" class="values"></textarea>
       </div>
       <div>
-        <p id="org-associations" class="values-header">Associations</p>
+        <p id="org-associations" class="values-header">
+          Associations (name: association1, association2, ...)
+        </p>
         <textarea id="associations" class="values"></textarea>
       </div>
       <button onclick='build_from_input()'>

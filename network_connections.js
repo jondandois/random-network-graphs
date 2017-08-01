@@ -106,7 +106,7 @@ function draw_network(orgs) {
   let canvasHeight = canvas.height;
   let canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
   ctx.clearRect(0,0, canvasWidth, canvasHeight);
-  ctx.fillStyle = "#e2e2e2";
+  ctx.fillStyle = "#f2f2f2";
   ctx.fillRect(0,0, canvasWidth, canvasHeight);
 
   let locations_value = "";
