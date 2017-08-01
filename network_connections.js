@@ -138,6 +138,7 @@ function draw_network(orgs) {
       radius: 6400*Math.exp(OrgNet.map.getZoom() * -0.35)
     });
     marker.addTo(OrgNet.map);
+    marker.bindPopup(org_id);
     OrgNet.markers.push(marker);
 
     org.network.map( network_org => {
