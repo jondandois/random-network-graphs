@@ -12,6 +12,7 @@
     }
     .left{
       float: left;
+      padding-top: 10px;
     }
     .right{
       padding-left: 10px;
@@ -20,40 +21,52 @@
     .values-header{
       margin: 2px;
     }
+    .top{
+      width: 950px;
+    }
   </style>
 </head>
 <body>
   <div>
-    <button onclick='random_orgs()'>
-      <span>Generate random set of organizations</span>
-    </button>
-    <span>
-      <input id="n_orgs" placeholder="10">
-      Number of organizations
-    </span>
-  </div>
-  <div class="left">
-    <canvas id="map-canvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
-    <div class="right">
+    <div class="top">
       <div>
-        <p id="org-locations"  class="values-header">
-          Locations (name: x, y) Keep x,y values between 0-500
-        </p>
-        <textarea id="locations" class="values"></textarea>
+        <button onclick='random_orgs()'>
+          <span>Generate random set of organizations</span>
+        </button>
+        <span>
+          <input id="n_orgs" placeholder="10">
+          Number of organizations
+        </span>
       </div>
-      <div>
-        <p id="org-associations" class="values-header">
-          Associations (name: association1, association2, ...)
-        </p>
-        <textarea id="associations" class="values"></textarea>
+      <div class="left">
+        <canvas id="map-canvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+        <div class="right">
+          <div>
+            <p id="org-locations"  class="values-header">
+              Locations (name: x, y) Keep x,y values between 0-500
+            </p>
+            <textarea id="locations" class="values"></textarea>
+          </div>
+          <div>
+            <p id="org-associations" class="values-header">
+              Associations (name: association1, association2, ...)
+            </p>
+            <textarea id="associations" class="values"></textarea>
+          </div>
+          <button onclick='build_from_input()'>
+            <span>Build graph from inputs</span>
+          </button>
+        </div>
       </div>
-      <button onclick='build_from_input()'>
-        <span>Build graph from inputs</span>
-      </button>
+    </div>
+    <div class="bottom">
+      <span>
+        <a href="https://github.com/jondandois/random-network-graphs">
+          Check out this project on Github
+        </a>
+        Jonathan Dandois
+      </span>
     </div>
   </div>
-
-
-
 </body>
 </html>
