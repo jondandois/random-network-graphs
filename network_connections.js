@@ -38,6 +38,7 @@ function build_from_input(){
   Object.keys(locations).map(location_id => {
     OrgNet.orgs[location_id] = {};
     let latlng = locations[location_id].split(', ');
+    OrgNet.orgs[location_id]['id'] = location_id;
     OrgNet.orgs[location_id]['location'] = {lat: parseFloat(latlng[0]), lng: parseFloat(latlng[1])}
     OrgNet.orgs[location_id]['color'] = random_rgb();
     if (associations[location_id] === "") {
@@ -66,6 +67,7 @@ function get_network (n) {
   for (var k = 0; k < orgs.length; k++) {
     let random_size = get_random_int(0, orgs.length);
     orgs_net[orgs[k]] = {}
+    orgs_net[orgs[k]]['id'] = orgs[k];
     orgs_net[orgs[k]]['network'] = get_random_sample(orgs, random_size, orgs[k]);
     orgs_net[orgs[k]]['location'] = get_random_location();
     orgs_net[orgs[k]]['color'] = random_rgb();
@@ -131,6 +133,11 @@ function draw_network(orgs) {
     locations_value += `${org_id}: ${org.location.lat.toFixed(6)}, ${org.location.lng.toFixed(6)}\n`;
     associations_value += `${org_id}: `;
 
+    org.network.map( network_org => {
+      associations_value += `${network_org}, `
+      draw_line_between(org, orgs[network_org]);
+    });
+
     let marker = L.circle([org.location.lat, org.location.lng], {
       color: org.color,
       fillColor: org.color,
@@ -141,10 +148,6 @@ function draw_network(orgs) {
     marker.bindPopup(org_id);
     OrgNet.markers.push(marker);
 
-    org.network.map( network_org => {
-      associations_value += `${network_org}, `
-      draw_line_between(org.location, orgs[network_org].location, org.color);
-    });
     associations_value += "\n";
     // ctx.font = "15px Arial";
     // ctx.strokeStyle = 'black';
@@ -158,16 +161,18 @@ function draw_network(orgs) {
 }
 
 // draw a line between two points
-function draw_line_between(begin, end, color) {
-  let pointA = new L.LatLng(begin.lat, begin.lng);
-  let pointB = new L.LatLng(end.lat, end.lng);
+function draw_line_between(org_begin, org_end) {
+  let pointA = new L.LatLng(org_begin.location.lat, org_begin.location.lng);
+  let pointB = new L.LatLng(org_end.location.lat, org_end.location.lng);
   let pointList = [pointA, pointB];
 
   let polyline = new L.Polyline(pointList, {
-    color: color,
+    color: org_begin.color,
     weight: 3,
     opacity: 0.5,
   });
+
+  polyline.bindPopup(org_begin.id + ' <-> ' + org_end.id);
   OrgNet.markers.push(polyline);
   polyline.addTo(OrgNet.map);
 }
