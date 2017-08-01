@@ -13,6 +13,7 @@
       float: left;
     }
     .right{
+      padding-left: 10px;
       float: right;
     }
     .values-header{
@@ -32,20 +33,19 @@
   </div>
   <div class="left">
     <canvas id="map-canvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
-  </div>
-  <div class="right">
-    <div>
-      <p id="org-locations"  class="values-header">Locations</p>
-      <textarea id="locations" class="values"></textarea>
+    <div class="right">
+      <div>
+        <p id="org-locations"  class="values-header">Locations</p>
+        <textarea id="locations" class="values"></textarea>
+      </div>
+      <div>
+        <p id="org-associations" class="values-header">Associations</p>
+        <textarea id="associations" class="values"></textarea>
+      </div>
+      <button onclick='build_from_input()'>
+        <span>Build graph from inputs</span>
+      </button>
     </div>
-    <div>
-      <p id="org-associations" class="values-header">Associations</p>
-      <textarea id="associations" class="values"></textarea>
-    </div>
-    <button onclick='build_from_input()'>
-      <span>Build graph from inputs</span>
-    </button>
-
   </div>
 
 
