@@ -1,11 +1,24 @@
-window.onload = initialize_graph;
+window.onload = initialize_map;
 
-function initialize_graph(){
+function initialize_map(){
   window.OrgNet = {
-    mapSize: document.getElementById('map-canvas').width,
-    pt_size: 10
+    mapSize: document.getElementById('map').width,
+    pt_size: 10,
+    map: {},
+    markers: []
   };
+  add_leaflet_map();
   random_orgs();
+}
+
+// add a new leaflet map
+function add_leaflet_map () {
+  OrgNet.map = L.map('map').setView([39.29, -76.61], 12);
+    // add a base map
+  let OpenStreetMap_BlackAndWhite = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(OrgNet.map);
 }
 
 // build graph from random values
@@ -24,8 +37,8 @@ function build_from_input(){
   associations = string_array_to_object(associations);
   Object.keys(locations).map(location_id => {
     OrgNet.orgs[location_id] = {};
-    let xy = locations[location_id].split(', ');
-    OrgNet.orgs[location_id]['location'] = {x: parseInt(xy[0]), y: parseInt(xy[1])}
+    let latlng = locations[location_id].split(', ');
+    OrgNet.orgs[location_id]['location'] = {lat: parseFloat(latlng[0]), lng: parseFloat(latlng[1])}
     OrgNet.orgs[location_id]['color'] = random_rgb();
     if (associations[location_id] === "") {
       OrgNet.orgs[location_id]['network'] = []
@@ -80,7 +93,9 @@ function get_random_sample(array, size, exclude) {
 
 // get a random XY location for each
 function get_random_location() {
-  return {x: parseInt(Math.random() * OrgNet.mapSize), y: parseInt(Math.random() * OrgNet.mapSize)};
+  let bounds = OrgNet.map.getBounds();
+  return {lat: get_random_float(bounds._southWest.lat, bounds._northEast.lat),
+          lng: get_random_float(bounds._southWest.lng, bounds._northEast.lng)};
 }
 
 // get a random int between
@@ -88,6 +103,11 @@ function get_random_int(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+// get a random float between
+function get_random_float(min, max) {
+  return (Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 
 // return a random rgba() string
@@ -99,33 +119,35 @@ function random_rgb() {
   b = Math.floor(Math.random()*255);
   return `rgba(${r},${g},${b},${a})`;
 }
+
+// draw the network graph
 function draw_network(orgs) {
-  let canvas = document.getElementById('map-canvas');
-  let ctx = canvas.getContext("2d");
-  let canvasWidth = canvas.width;
-  let canvasHeight = canvas.height;
-  let canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-  ctx.clearRect(0,0, canvasWidth, canvasHeight);
-  ctx.fillStyle = "#f2f2f2";
-  ctx.fillRect(0,0, canvasWidth, canvasHeight);
+  clear_layers();
 
   let locations_value = "";
   let associations_value = "";
   Object.keys(orgs).map( org_id => {
     let org = orgs[org_id];
-    ctx.fillStyle = org.color;
-    locations_value += `${org_id}: ${org.location.x}, ${org.location.y}\n`;
+    locations_value += `${org_id}: ${org.location.lat.toFixed(6)}, ${org.location.lng.toFixed(6)}\n`;
     associations_value += `${org_id}: `;
 
-    ctx.fillRect(org.location.x, org.location.y, OrgNet.pt_size, OrgNet.pt_size);
+    let marker = L.circle([org.location.lat, org.location.lng], {
+      color: org.color,
+      fillColor: org.color,
+      fillOpacity: 0.5,
+      radius: 6400*Math.exp(OrgNet.map.getZoom() * -0.35)
+    });
+    marker.addTo(OrgNet.map);
+    OrgNet.markers.push(marker);
+
     org.network.map( network_org => {
       associations_value += `${network_org}, `
-      draw_line_between(org.location, orgs[network_org].location, org.color, ctx);
+      draw_line_between(org.location, orgs[network_org].location, org.color);
     });
     associations_value += "\n";
-    ctx.font = "15px Arial";
-    ctx.strokeStyle = 'black';
-    ctx.fillText(org_id, org.location.x + OrgNet.pt_size, org.location.y + OrgNet.pt_size);
+    // ctx.font = "15px Arial";
+    // ctx.strokeStyle = 'black';
+    // ctx.fillText(org_id, org.location.x + OrgNet.pt_size, org.location.y + OrgNet.pt_size);
   });
   document.getElementById('locations').value = locations_value;
   document.getElementById('associations').value = associations_value;
@@ -135,13 +157,26 @@ function draw_network(orgs) {
 }
 
 // draw a line between two points
-function draw_line_between(begin, end, color, ctx) {
-  ctx.beginPath();
-  ctx.lineWidth = "2";
-  ctx.strokeStyle = color;
-  ctx.moveTo(begin.x + OrgNet.pt_size/2,begin.y + OrgNet.pt_size/2);
-  ctx.lineTo(end.x  + OrgNet.pt_size/2, end.y  + OrgNet.pt_size/2);
-  ctx.stroke();
+function draw_line_between(begin, end, color) {
+  let pointA = new L.LatLng(begin.lat, begin.lng);
+  let pointB = new L.LatLng(end.lat, end.lng);
+  let pointList = [pointA, pointB];
+
+  let polyline = new L.Polyline(pointList, {
+    color: color,
+    weight: 3,
+    opacity: 0.5,
+  });
+  OrgNet.markers.push(polyline);
+  polyline.addTo(OrgNet.map);
+}
+
+// clear the markers out
+function clear_layers () {
+  for (var i = OrgNet.markers.length - 1; i >= 0; i--) {
+    OrgNet.markers[i].remove();
+    OrgNet.markers.pop();
+  }
 }
 
 // convert an array of strings ["key: value", "key: value"...] to an object
